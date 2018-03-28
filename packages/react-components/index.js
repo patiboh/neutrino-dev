@@ -30,7 +30,7 @@ module.exports = (neutrino, opts = {}) => {
     });
 
   neutrino.config.when(
-    process.env.NODE_ENV === 'development',
+    process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test',
     () => {
       neutrino.use(react, options);
     },

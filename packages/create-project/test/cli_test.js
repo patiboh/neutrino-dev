@@ -1,19 +1,24 @@
 import test from 'ava';
-import { xprod } from 'ramda';
 import assert from 'yeoman-assert';
 import helpers from 'yeoman-test';
 import { join } from 'path';
 import { spawn } from 'child_process';
-import { packages } from '../commands/init/utils'
 
 if (process.env.NODE_ENV !== 'test') {
   process.env.NODE_ENV = 'test';
 }
 
+const REGISTRY = 'http://localhost:4873';
+
 const project = (prompts) => helpers
   .run(require.resolve(join(__dirname, '../commands/init')))
   .inTmpDir(function(dir) {
-    this.withOptions({ directory: dir, name: 'testable', stdio: 'ignore' });
+    this.withOptions({
+      directory: dir,
+      name: 'testable',
+      stdio: 'ignore',
+      registry: REGISTRY,
+    });
   })
   .withPrompts(prompts)
   .toPromise();
@@ -52,54 +57,63 @@ const lintable = async (t, dir) => {
     t.fail(`Failed to lint project:\n\n${output}`);
   }
 };
-const tests = [packages.JEST, packages.KARMA, packages.MOCHA];
-const matrix = {
-  react: [
-    [packages.REACT],
-    [packages.AIRBNB, packages.STANDARDJS],
-    tests
-  ],
-  preact: [
-    [packages.PREACT],
-    [packages.AIRBNB, packages.STANDARDJS],
-    tests
-  ],
-  node: [
-    [packages.NODE],
-    [packages.AIRBNB_BASE, packages.STANDARDJS],
-    tests.filter(t => t !== packages.KARMA)
-  ],
-  'react-components': [
-    [packages.REACT_COMPONENTS],
-    [packages.AIRBNB, packages.STANDARDJS],
-    tests
-  ],
-  vue: [
-    [packages.VUE],
-    [packages.AIRBNB_BASE, packages.STANDARDJS],
-    tests
-  ],
-  web: [
-    [packages.WEB],
-    [packages.AIRBNB_BASE, packages.STANDARDJS],
-    tests
-  ],
-};
 
-Object
-  .keys(matrix)
-  .forEach((key) => {
-    const [presets, linters, tests] = matrix[key];
-    const [preset] = presets;
+if (process.env.PROJECT) {
+  let dir;
 
-    test.serial(preset, async t => {
-      const dir = await project({
+  test.before(async () => {
+    if (process.env.LINTER) {
+      dir = await project({
         projectType: 'application',
-        project: preset,
+        project: process.env.PROJECT,
+        testRunner: false,
+        linter: process.env.LINTER
+      });
+    } else if (process.env.TEST_RUNNER) {
+      dir = await project({
+        projectType: 'application',
+        project: process.env.PROJET,
+        testRunner: process.env.TEST_RUNNER,
+        linter: false
+      });
+    } else {
+      dir = project({
+        projectType: 'application',
+        project: process.env.PROJECT,
         testRunner: false,
         linter: false
       });
+    }
+  });
 
+  if (process.env.LINTER) {
+    test(`${process.env.PROJECT} + ${process.env.LINTER}`, async t => {
+      usable(dir, [
+        'package.json',
+        '.neutrinorc.js',
+        '.eslintrc.js'
+      ]);
+
+      await Promise.all([
+        buildable(t, dir),
+        lintable(t, dir)
+      ]);
+    });
+  } else if (process.env.TEST_RUNNER) {
+    test(`${process.env.PROJECT} + ${process.env.TEST_RUNNER}`, async t => {
+      usable(dir, [
+        'package.json',
+        '.neutrinorc.js',
+        'test/simple_test.js'
+      ]);
+
+      await Promise.all([
+        buildable(t, dir),
+        testable(t, dir)
+      ]);
+    });
+  } else {
+    test(process.env.PROJECT, async t => {
       usable(dir, [
         'package.json',
         '.neutrinorc.js'
@@ -107,52 +121,7 @@ Object
 
       await buildable(t, dir);
     });
-
-    xprod(presets, tests).forEach(([preset, testRunner]) => {
-      const testName = testRunner ? `${preset} + ${testRunner}` : preset;
-
-      test.serial(testName, async t => {
-        const dir = await project({
-          projectType: 'application',
-          project: preset,
-          testRunner,
-          linter: false
-        });
-
-        usable(dir, [
-          'package.json',
-          '.neutrinorc.js',
-          'test/simple_test.js'
-        ]);
-
-        await Promise.all([
-          buildable(t, dir),
-          testable(t, dir)
-        ]);
-      });
-    });
-
-    xprod(presets, linters).forEach(([preset, linter]) => {
-      const testName = `${preset} + ${linter}`;
-
-      test.serial(testName, async t => {
-        const dir = await project({
-          projectType: 'application',
-          project: preset,
-          testRunner: false,
-          linter
-        });
-
-        usable(dir, [
-          'package.json',
-          '.neutrinorc.js',
-          '.eslintrc.js'
-        ]);
-
-        await Promise.all([
-          buildable(t, dir),
-          lintable(t, dir)
-        ]);
-      });
-    });
-  });
+  }
+} else {
+  throw new Error('create-project test missing PROJECT environment variable');
+}
