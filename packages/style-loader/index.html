@@ -1070,8 +1070,8 @@ by other consuming middleware. Each loader object can specify 3 properties:</p>
 <p>Using a string to define loaders will cause <code>@neutrinojs/style-loader</code> to still generate a loader object. The string
 will be used as the <code>loader</code> property, <code>options</code> will be left blank, and the <code>useId</code> will be derived from
 <code>cssUseId</code> option above plus the index of this loader within the <code>loaders</code> array.</p>
-<p><strong>Important: The <code>useId</code> for string-defined loaders will start at <code>2</code>, since all loaders are preceded by the included
-<code>style-loader</code> and <code>css-loader</code>.</strong></p>
+<p><strong>Important:</strong> The <code>useId</code> for string-defined loaders will start at <code>2</code>, since all loaders are preceded by the included
+<code>style-loader</code> and <code>css-loader</code>.</p>
 <pre class="language-"><code class="lang-js">module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
   use<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">&apos;@neutrinojs/style-loader&apos;</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     loaders<span class="token punctuation">:</span> <span class="token punctuation">[</span>
@@ -1085,14 +1085,8 @@ will be used as the <code>loader</code> property, <code>options</code> will be l
       <span class="token punctuation">}</span><span class="token punctuation">,</span>
       <span class="token punctuation">{</span>
         loader<span class="token punctuation">:</span> <span class="token string">&apos;postcss-loader&apos;</span><span class="token punctuation">,</span>
-        useId<span class="token punctuation">:</span> <span class="token string">&apos;postcss&apos;</span><span class="token punctuation">,</span>
         options<span class="token punctuation">:</span> <span class="token punctuation">{</span>
-          config<span class="token punctuation">:</span> <span class="token punctuation">{</span>
-
-            <span class="token comment" spellcheck="true">// Where to look for config (postcss.config.js)</span>
-            <span class="token comment" spellcheck="true">// https://github.com/postcss/postcss-loader#path</span>
-            path<span class="token punctuation">:</span> neutrino<span class="token punctuation">.</span>options<span class="token punctuation">.</span>root
-          <span class="token punctuation">}</span>
+          plugins<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token function">require</span><span class="token punctuation">(</span><span class="token string">&apos;autoprefixer&apos;</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
         <span class="token punctuation">}</span>
       <span class="token punctuation">}</span>
     <span class="token punctuation">]</span>
@@ -1115,6 +1109,39 @@ will be used as the <code>loader</code> property, <code>options</code> will be l
 </code></pre>
 <p>Due to the inferred loader names, we highly recommend you stick to using objects
 to define loaders.</p>
+<h3 id="loader-configuration">Loader Configuration</h3>
+<p>You can configure loaders directly by passing <code>options</code>.
+For PostCSS, if you want to use an <a href="https://github.com/michael-ciniawsky/postcss-load-config" target="_blank">external config file</a>,
+you need to pass <code>options.config</code>:</p>
+<pre class="language-"><code class="lang-js"><span class="token comment" spellcheck="true">// .neutrinorc.js</span>
+module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  use<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">&apos;@neutrinojs/style-loader&apos;</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    loaders<span class="token punctuation">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">{</span>
+        loader<span class="token punctuation">:</span> <span class="token string">&apos;postcss-loader&apos;</span><span class="token punctuation">,</span>
+        useId<span class="token punctuation">:</span> <span class="token string">&apos;postcss&apos;</span><span class="token punctuation">,</span>
+        options<span class="token punctuation">:</span> <span class="token punctuation">{</span>
+          config<span class="token punctuation">:</span> <span class="token punctuation">{</span>
+
+            <span class="token comment" spellcheck="true">// Where to look for config (postcss.config.js)</span>
+            <span class="token comment" spellcheck="true">// https://github.com/postcss/postcss-loader#path</span>
+            <span class="token comment" spellcheck="true">// See &quot;Loader Configuration&quot; below</span>
+            path<span class="token punctuation">:</span> neutrino<span class="token punctuation">.</span>options<span class="token punctuation">.</span>root
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<pre class="language-"><code class="lang-js"><span class="token comment" spellcheck="true">// .postcssrc.js</span>
+<span class="token comment" spellcheck="true">// Example: load tailwindcss plugin</span>
+module<span class="token punctuation">.</span>exports <span class="token operator">=</span> <span class="token punctuation">{</span>
+  plugins<span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    tailwindcss<span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
 <h2 id="customization">Customization</h2>
 <p><code>@neutrinojs/style-loader</code> creates some conventions to make overriding the configuration easier once you are
 ready to make changes.</p>
@@ -1212,7 +1239,7 @@ containing all resources for developing Neutrino and its core presets and middle
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"style-loader","level":"1.15.34","depth":2,"next":{"title":"style-minify","level":"1.15.35","depth":2,"path":"packages/style-minify/README.md","ref":"./packages/style-minify/README.md","articles":[]},"previous":{"title":"start-server","level":"1.15.33","depth":2,"path":"packages/start-server/README.md","ref":"./packages/start-server/README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["edit-link","prism","-highlight","github","anchorjs","npmsearchlist"],"root":"./docs","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"prism":{},"github":{"url":"https://github.com/mozilla-neutrino/neutrino-dev/"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"npmsearchlist":{},"fontsettings":{"theme":"white","family":"sans","size":2},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"edit-link":{"label":"Edit page","base":"https://github.com/mozilla-neutrino/neutrino-dev/tree/master/docs"},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchorjs":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Neutrino","gitbook":"*"},"file":{"path":"packages/style-loader/README.md","mtime":"2018-03-22T19:47:12.078Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2018-03-22T19:47:18.904Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"style-loader","level":"1.15.34","depth":2,"next":{"title":"style-minify","level":"1.15.35","depth":2,"path":"packages/style-minify/README.md","ref":"./packages/style-minify/README.md","articles":[]},"previous":{"title":"start-server","level":"1.15.33","depth":2,"path":"packages/start-server/README.md","ref":"./packages/start-server/README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["edit-link","prism","-highlight","github","anchorjs","npmsearchlist"],"root":"./docs","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"prism":{},"github":{"url":"https://github.com/mozilla-neutrino/neutrino-dev/"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"npmsearchlist":{},"fontsettings":{"theme":"white","family":"sans","size":2},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"edit-link":{"label":"Edit page","base":"https://github.com/mozilla-neutrino/neutrino-dev/tree/master/docs"},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchorjs":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Neutrino","gitbook":"*"},"file":{"path":"packages/style-loader/README.md","mtime":"2018-04-26T13:53:33.171Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2018-04-26T13:54:33.581Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
