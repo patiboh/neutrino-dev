@@ -18,6 +18,8 @@
     "build": "lerna run build",
     "changelog": "auto-changelog --remote upstream --commit-limit false",
     "cnp": "NODE_ENV=test packages/create-project/bin/create-neutrino-project.js $(yarn random)",
+    "docs:bootstrap": "pip install -r docs/requirements.txt",
+    "docs:serve": "mkdocs serve --config-file docs/mkdocs.yml",
     "link:all": "lerna exec yarn link",
     "lint": "node packages/neutrino/bin/neutrino lint",
     "precommit": "lint-staged",

@@ -10,7 +10,7 @@ configuration and dependencies necessary to accomplish those use cases:
 
 ## Getting Started
 
-Neutrino middleware are Node.js modules or packages that export a [middleware format](./middleware/README.md#formats).
+Neutrino middleware are Node.js modules or packages that export a [middleware format](./middleware.md#formats).
 We call these Neutrino middleware because they sit in the middle of Neutrino and webpack, modifying a configuration with
 each subsequent middleware call. When using the function middleware formats, you can use the Neutrino instance provided
 to the middleware function to modify the configuration, provide your own configuration, expose custom options for your

@@ -1,0 +1,7 @@
+[build]
+  # Using a non-root base directory combined with `cd ..` to prevent
+  # Netlify from finding package.json and trying to install that:
+  # https://github.com/netlify/build-image/issues/141
+  base    = "docs"
+  publish = "build"
+  command = "cd .. && mkdocs build --config-file docs/mkdocs.yml"
